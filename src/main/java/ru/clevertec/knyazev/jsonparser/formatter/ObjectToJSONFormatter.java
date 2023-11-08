@@ -1,9 +1,11 @@
 package ru.clevertec.knyazev.jsonparser.formatter;
 
+import ru.clevertec.knyazev.jsonparser.exception.JSONParserException;
 import ru.clevertec.knyazev.jsonparser.util.ObjectDeterminerUtil;
 
 import javax.naming.OperationNotSupportedException;
 import java.lang.reflect.Field;
+import java.util.Arrays;
 
 /**
  * Represents Formatter for formatting simple and composite objects to JSON
@@ -12,7 +14,7 @@ public abstract class ObjectToJSONFormatter implements ObjectDeterminerUtil {
 
     /**
      * Format any object to JSON String
-     *
+     * <p>
      * Example:
      * Class A {
      * private String b = "1";
@@ -23,14 +25,18 @@ public abstract class ObjectToJSONFormatter implements ObjectDeterminerUtil {
      * <p>
      * String b = "1";
      * <p>
-     * should return {"b":"1","id":5}, or throws {@link IllegalArgumentException},
+     * should return {"b":"1","id":5}, or throws {@link JSONParserException},
+     * <p>
+     * If second param (objectTypeName) has been given like "A" than in first example should return
+     * A:"b":"1","id":5}
      *
-     * @param object input object
-     * @param <T>    given object type
+     * @param object         input object
+     * @param objectTypeName the type name of object
+     * @param <T>            given object type
      * @return JSON result as String
-     * @throws IllegalArgumentException if object has primitive type (String, Boolean, Number)
+     * @throws JSONParserException if object has primitive type (String, Boolean, Number)
      */
-    public abstract <T> String formatObjectToJSON(T object) throws IllegalArgumentException;
+    public abstract <T> String formatObjectToJSON(T object, String... objectTypeName) throws JSONParserException;
 
     /**
      * Format to JSON simple Object or Object's field type
@@ -132,12 +138,17 @@ public abstract class ObjectToJSONFormatter implements ObjectDeterminerUtil {
      *
      * @param parsingObject object for parsing to JSON
      * @return JSON parsing result
+     * @throws JSONParserException when haven't permissions for working with field
      */
-    String formatByCase(Object parsingObject, Field... objectField) {
+    String formatByCase(Object parsingObject, Field... objectField) throws JSONParserException {
+
         String result = "";
 
-        Class<?> checkingClass = objectField == null ? parsingObject.getClass()
-                                                     : objectField[0].getType();
+        boolean isValidObjectField = objectField != null && objectField.length == 1;
+
+        Class<?> checkingClass = isValidObjectField
+                ? objectField[0].getType()
+                : parsingObject.getClass();
 
         if (isComposite(checkingClass)) {
             if (isArray(checkingClass)) {
@@ -147,7 +158,17 @@ public abstract class ObjectToJSONFormatter implements ObjectDeterminerUtil {
             } else if (isMap(checkingClass)) {
                 result = formatMap(parsingObject, objectField);
             } else {
-                result = formatObjectToJSON(parsingObject);
+                try {
+
+                    if (isValidObjectField) {
+                        result = formatObjectToJSON(objectField[0].get(parsingObject), objectField[0].getName());
+                    } else {
+                        result = formatObjectToJSON(parsingObject);
+                    }
+
+                } catch (IllegalAccessException e) {
+                    throw new JSONParserException(e);
+                }
             }
         } else {
             result = formatSimple(parsingObject, objectField);

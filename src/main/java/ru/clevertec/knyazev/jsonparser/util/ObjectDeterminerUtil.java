@@ -21,10 +21,10 @@ public interface ObjectDeterminerUtil {
     default <T> boolean isComposite(Class<T> clazz) {
 
         return clazz != null &&
-               (!clazz.isPrimitive() ||
-               !Number.class.isAssignableFrom(clazz) ||
-               !String.class.isAssignableFrom(clazz) ||
-               !Boolean.class.isAssignableFrom(clazz));
+               !(clazz.isPrimitive() ||
+               Number.class.isAssignableFrom(clazz) ||
+               String.class.isAssignableFrom(clazz) ||
+               Boolean.class.isAssignableFrom(clazz));
 
     }
 

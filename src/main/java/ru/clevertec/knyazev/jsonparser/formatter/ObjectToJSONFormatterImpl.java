@@ -23,10 +23,16 @@ public class ObjectToJSONFormatterImpl extends ObjectToJSONFormatter {
     private static final String FORMATTING_MAP_ERROR = "Error when formatting map";
 
     @Override
-    public <T> String formatObjectToJSON(T object) {
+    public <T> String formatObjectToJSON(T object, String... objectTypeName) {
+
+        String objTypeName = "";
+
+        if (objectTypeName != null && objectTypeName.length == 1) {
+            objTypeName = "\"" + objectTypeName[0] +"\":";
+        }
 
         if (object == null) {
-            return "{}";
+            return "{},";
         }
 
         if (!isComposite(object.getClass())) {
@@ -36,13 +42,13 @@ public class ObjectToJSONFormatterImpl extends ObjectToJSONFormatter {
         Field[] fields = object.getClass().getDeclaredFields();
 
         if (fields.length == 0) {
-            return "{}";
+            return "{},";
         }
 
-        return Stream.of(fields)
-                            .peek(field -> field.setAccessible(true))
-                            .map(field -> formatByCase(object, field))
-                            .collect(Collectors.joining("", "{", "}"))
+        return objTypeName + Stream.of(fields)
+                .peek(field -> field.setAccessible(true))
+                .map(field -> formatByCase(object, field))
+                .collect(Collectors.joining("", "{", "}"))
                 .replaceFirst(",}$", "},");
     }
 
