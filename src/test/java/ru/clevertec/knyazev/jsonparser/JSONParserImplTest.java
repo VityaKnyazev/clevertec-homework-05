@@ -3,6 +3,8 @@ package ru.clevertec.knyazev.jsonparser;
 import com.google.gson.Gson;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import ru.clevertec.knyazev.jsonparser.formatter.JSONToObjectFormatter;
+import ru.clevertec.knyazev.jsonparser.formatter.ObjectToJSONFormatter;
 import ru.clevertec.knyazev.jsonparser.formatter.ObjectToJSONFormatterImpl;
 import ru.clevertec.knyazev.jsonparser.util.*;
 
@@ -15,12 +17,18 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class JSONParserImplTest {
 
+    private ObjectToJSONFormatter objectToJSONFormatter;
+    private JSONToObjectFormatter jsonToObjectFormatter;
     private JSONParser jsonParserImpl;
+
     private Gson gson;
 
     @BeforeEach
     public void setUp() {
-        jsonParserImpl = new JSONParserImpl(new ObjectToJSONFormatterImpl());
+        objectToJSONFormatter = new ObjectToJSONFormatterImpl();
+        jsonToObjectFormatter = new JSONToObjectFormatter();
+        jsonParserImpl = new JSONParserImpl(objectToJSONFormatter, jsonToObjectFormatter);
+
         gson = new Gson();
     }
 
@@ -42,17 +50,17 @@ public class JSONParserImplTest {
 
     @Test
     public void checkToJsonShouldReturnJSONStringOnCompositeObject() {
-        Family family = new Family.Builder()
-                .setName("Standard")
-                .setAgeTogether(15)
-                .setMan(new Human.Builder()
+        Family family = Family.builder()
+                .name("Standard")
+                .ageTogether(15)
+                .man(new Human.Builder()
                         .setName("Miko")
                         .setFamily("Veter")
                         .setAge(45)
                         .setIsGod(false)
                         .setChildrenQuantity(3)
                         .build())
-                .setWoman(new Human.Builder()
+                .woman(new Human.Builder()
                         .setName("Margo")
                         .setFamily("Veter")
                         .setAge(37)
@@ -201,6 +209,37 @@ public class JSONParserImplTest {
         String actualJson = jsonParserImpl.toJSON(objectWithEmptyFields);
 
         assertThat(actualJson).isEqualTo("{}");
+    }
+
+
+    @Test
+    public void checkToObjectShouldReturnObject() {
+
+        Family expectedFamily = Family.builder()
+                .name("Standard")
+                .ageTogether(15)
+                .man(new Human.Builder()
+                        .setName("Miko")
+                        .setFamily("Veter")
+                        .setAge(45)
+                        .setIsGod(false)
+                        .setChildrenQuantity(3)
+                        .build())
+                .woman(new Human.Builder()
+                        .setName("Margo")
+                        .setFamily("Veter")
+                        .setAge(37)
+                        .setIsGod(true)
+                        .setChildrenQuantity(2)
+                        .build())
+                .build();
+
+        String json = gson.toJson(expectedFamily);
+
+        Family actualFamily = jsonParserImpl.toObject(Family.class, json);
+
+        assertThat(actualFamily).isEqualTo(expectedFamily);
+
     }
 
 }
