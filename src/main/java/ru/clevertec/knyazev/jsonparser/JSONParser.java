@@ -17,5 +17,15 @@ public interface JSONParser {
      */
     <T> String toJSON(T object);
 
+    /**
+     *
+     * Parse JSON to object
+     *
+     * @param objectClass object class of T type
+     * @param json string for parsing to object
+     * @return Object from JSON string
+     * @param <T> object type
+     */
+    <T> T toObject(Class<T> objectClass, String json);
 
 }
