@@ -11,6 +11,9 @@ ext {
     slf4jApiVersion = '2.0.7'
     logbackVersion = '1.4.11'
 
+    gsonVersion = '2.10.1'
+
+    assertjVersion = '3.24.2'
     junitVersion = '5.9.2'
 }
 
@@ -23,6 +26,9 @@ dependencies {
     implementation "org.slf4j:slf4j-api:$slf4jApiVersion"
     implementation "ch.qos.logback:logback-classic:$logbackVersion"
 
+    testImplementation "org.assertj:assertj-core:${assertjVersion}"
+
+    testImplementation "com.google.code.gson:gson:$gsonVersion"
     testImplementation "org.junit.jupiter:junit-jupiter-api:${junitVersion}"
     testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:${junitVersion}"
 }
