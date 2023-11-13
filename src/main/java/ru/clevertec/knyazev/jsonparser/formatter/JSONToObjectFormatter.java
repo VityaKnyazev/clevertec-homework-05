@@ -30,6 +30,11 @@ public class JSONToObjectFormatter implements JSONDeterminerUtil, ObjectDetermin
             Arrays.stream(childFields)
                     .peek(childField -> childField.setAccessible(true))
                     .peek(childField -> jSon.setFormattingField(childField.getName()))
+                    .peek(childField -> {
+                        if (isComposite(childField.getType())) {
+                            jSon.setFormattingField(childField.getName());
+                        }
+                    })
                     .forEach(childField -> formatByCase(childObjectInstance, jSon, childField));
 
             try {
@@ -51,6 +56,11 @@ public class JSONToObjectFormatter implements JSONDeterminerUtil, ObjectDetermin
             Arrays.stream(parentFields)
                     .peek(parentField -> parentField.setAccessible(true))
                     .peek(parentField -> jSon.setFormattingField(parentField.getName()))
+                    .peek(parentField -> {
+                        if (isComposite(parentField.getType())) {
+                            jSon.setFormattingField(parentField.getName());
+                        }
+                    })
                     .forEach(parentField -> formatByCase(parentObjectInstance, jSon, parentField));
         }
 

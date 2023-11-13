@@ -34,12 +34,12 @@ public class JSONParserImplTest {
 
     @Test
     public void checkToJsonShouldReturnJSONStringOnSimpleObject() {
-        Human human = new Human.Builder()
-                .setName("Zafar")
-                .setFamily("Khalid")
-                .setAge(29)
-                .setIsGod(false)
-                .setChildrenQuantity(3)
+        Human human = Human.builder()
+                .name("Zafar")
+                .family("Khalid")
+                .age(29)
+                .isGod(false)
+                .childrenQuantity(3)
                 .build();
 
         String expectedJson = gson.toJson(human);
@@ -53,19 +53,19 @@ public class JSONParserImplTest {
         Family family = Family.builder()
                 .name("Standard")
                 .ageTogether(15)
-                .man(new Human.Builder()
-                        .setName("Miko")
-                        .setFamily("Veter")
-                        .setAge(45)
-                        .setIsGod(false)
-                        .setChildrenQuantity(3)
+                .man(Human.builder()
+                        .name("Miko")
+                        .family("Veter")
+                        .age(45)
+                        .isGod(false)
+                        .childrenQuantity(3)
                         .build())
-                .woman(new Human.Builder()
-                        .setName("Margo")
-                        .setFamily("Veter")
-                        .setAge(37)
-                        .setIsGod(true)
-                        .setChildrenQuantity(2)
+                .woman(Human.builder()
+                        .name("Margo")
+                        .family("Veter")
+                        .age(37)
+                        .isGod(true)
+                        .childrenQuantity(2)
                         .build())
                 .build();
 
@@ -77,12 +77,12 @@ public class JSONParserImplTest {
 
     @Test
     public void checkToJsonShouldReturnJSONStringOnCompositeObjectWithArray() {
-        Human[][] humans = {{new Human.Builder()
-                .setName("Anna")
-                .setFamily("Vera")
-                .setAge(27)
-                .setIsGod(false)
-                .setChildrenQuantity(0)
+        Human[][] humans = {{Human.builder()
+                .name("Anna")
+                .family("Vera")
+                .age(27)
+                .isGod(false)
+                .childrenQuantity(0)
                 .build()}};
 
         Car car = new Car.Builder()
@@ -108,19 +108,19 @@ public class JSONParserImplTest {
                     private static final long serialVersionUID = -7399310972513077651L;
 
                     {
-                        add(new Human.Builder()
-                                .setName("Anton")
-                                .setFamily("Alkin")
-                                .setAge(0)
-                                .setChildrenQuantity(0)
-                                .setIsGod(false)
+                        add(Human.builder()
+                                .name("Anton")
+                                .family("Alkin")
+                                .age(0)
+                                .childrenQuantity(0)
+                                .isGod(false)
                                 .build());
-                        add(new Human.Builder()
-                                .setName("Dasha")
-                                .setFamily("Alkin")
-                                .setChildrenQuantity(0)
-                                .setIsGod(false)
-                                .setAge(0)
+                        add(Human.builder()
+                                .name("Dasha")
+                                .family("Alkin")
+                                .childrenQuantity(0)
+                                .isGod(false)
+                                .age(0)
                                 .build());
                     }})
                 .setAddresses(new ArrayList<>() {
@@ -137,19 +137,19 @@ public class JSONParserImplTest {
                     private static final long serialVersionUID = -3167322156514520118L;
 
                     {
-                        add(new Human.Builder()
-                                .setName("Galka")
-                                .setFamily("Alkin")
-                                .setChildrenQuantity(3)
-                                .setIsGod(true)
-                                .setAge(35)
+                        add(Human.builder()
+                                .name("Galka")
+                                .family("Alkin")
+                                .childrenQuantity(3)
+                                .isGod(true)
+                                .age(35)
                                 .build());
-                        add(new Human.Builder()
-                                .setName("Valya")
-                                .setFamily("Alkin")
-                                .setChildrenQuantity(1)
-                                .setIsGod(false)
-                                .setAge(19)
+                        add(Human.builder()
+                                .name("Valya")
+                                .family("Alkin")
+                                .childrenQuantity(1)
+                                .isGod(false)
+                                .age(19)
                                 .build());
                     }})
                 .build();
@@ -162,12 +162,12 @@ public class JSONParserImplTest {
 
     @Test
     public void checkToJsonShouldReturnJSONStringOnCompositeObjectWithMap() {
-        Human[][] passengers = {{new Human.Builder()
-                .setName("Manya")
-                .setFamily("Galya")
-                .setAge(27)
-                .setIsGod(true)
-                .setChildrenQuantity(0)
+        Human[][] passengers = {{Human.builder()
+                .name("Manya")
+                .family("Galya")
+                .age(27)
+                .isGod(true)
+                .childrenQuantity(0)
                 .build()}};
 
         Dealer dealer = new Dealer.Builder()
@@ -218,19 +218,19 @@ public class JSONParserImplTest {
         Family expectedFamily = Family.builder()
                 .name("Standard")
                 .ageTogether(15)
-                .man(new Human.Builder()
-                        .setName("Miko")
-                        .setFamily("Veter")
-                        .setAge(45)
-                        .setIsGod(false)
-                        .setChildrenQuantity(3)
+                .man(Human.builder()
+                        .name("Miko")
+                        .family("Veter")
+                        .age(45)
+                        .isGod(false)
+                        .childrenQuantity(3)
                         .build())
-                .woman(new Human.Builder()
-                        .setName("Margo")
-                        .setFamily("Veter")
-                        .setAge(37)
-                        .setIsGod(true)
-                        .setChildrenQuantity(2)
+                .woman(Human.builder()
+                        .name("Margo")
+                        .family("Veter")
+                        .age(37)
+                        .isGod(true)
+                        .childrenQuantity(2)
                         .build())
                 .build();
 

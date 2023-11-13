@@ -158,6 +158,8 @@ public interface ObjectDeterminerUtil {
                 field.set(object, value);
             }
             if (field.getType() == String.class) {
+                fieldValue = fieldValue.substring(1, fieldValue.length() - 1);
+
                 field.set(object, fieldValue);
             }
 
