@@ -3,9 +3,7 @@ package ru.clevertec.knyazev.jsonparser.formatter;
 import ru.clevertec.knyazev.jsonparser.exception.JSONParserException;
 import ru.clevertec.knyazev.jsonparser.util.ObjectDeterminerUtil;
 
-import javax.naming.OperationNotSupportedException;
 import java.lang.reflect.Field;
-import java.util.Arrays;
 
 /**
  * Represents Formatter for formatting simple and composite objects to JSON
@@ -142,7 +140,7 @@ public abstract class ObjectToJSONFormatter implements ObjectDeterminerUtil {
      */
     String formatByCase(Object parsingObject, Field... objectField) throws JSONParserException {
 
-        String result = "";
+        String result;
 
         boolean isValidObjectField = objectField != null && objectField.length == 1;
 

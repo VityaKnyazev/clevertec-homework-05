@@ -2,12 +2,14 @@ package ru.clevertec.knyazev.jsonparser;
 
 import com.google.gson.Gson;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import ru.clevertec.knyazev.jsonparser.formatter.JSONToObjectFormatter;
 import ru.clevertec.knyazev.jsonparser.formatter.ObjectToJSONFormatter;
 import ru.clevertec.knyazev.jsonparser.formatter.ObjectToJSONFormatterImpl;
 import ru.clevertec.knyazev.jsonparser.util.*;
 
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -85,11 +87,11 @@ public class JSONParserImplTest {
                 .childrenQuantity(0)
                 .build()}};
 
-        Car car = new Car.Builder()
-                .setProducers(new String[]{"Alex Antonov", "Andre Bogomazov", "Paul Liney"})
-                .setIsExclusive(false)
-                .setProductionYear(1958)
-                .setPassengers(humans)
+        Car car = Car.builder()
+                .producers(new String[]{"Alex Antonov", "Andre Bogomazov", "Paul Liney"})
+                .isExclusive(false)
+                .productionYear(1958)
+                .passengers(humans)
                 .build();
 
         String expectedJson = gson.toJson(car);
@@ -105,6 +107,7 @@ public class JSONParserImplTest {
                 .setFamily("Alkin")
                 .setChildrens(new HashSet<>() {
 
+                    @Serial
                     private static final long serialVersionUID = -7399310972513077651L;
 
                     {
@@ -125,6 +128,7 @@ public class JSONParserImplTest {
                     }})
                 .setAddresses(new ArrayList<>() {
 
+                    @Serial
                     private static final long serialVersionUID = 7043119155940843813L;
 
                     {
@@ -134,6 +138,7 @@ public class JSONParserImplTest {
                     }})
                 .setWives(new LinkedList<>() {
 
+                    @Serial
                     private static final long serialVersionUID = -3167322156514520118L;
 
                     {
@@ -175,15 +180,16 @@ public class JSONParserImplTest {
                 .setAge(34)
                 .setIsTop(true)
                 .setSellingHistory(new HashMap<>() {
+                    @Serial
                     private static final long serialVersionUID = -4280431847393918672L;
 
                     {
                         put(1,
-                                new Car.Builder()
-                                        .setProducers(new String[]{"Alex Antonov", "Andre Bogomazov", "Paul Liney"})
-                                        .setIsExclusive(false)
-                                        .setProductionYear(1958)
-                                        .setPassengers(passengers)
+                                Car.builder()
+                                        .producers(new String[]{"Alex Antonov", "Andre Bogomazov", "Paul Liney"})
+                                        .isExclusive(false)
+                                        .productionYear(1958)
+                                        .passengers(passengers)
                                         .build());
                     }})
                 .build();
@@ -240,6 +246,30 @@ public class JSONParserImplTest {
 
         assertThat(actualFamily).isEqualTo(expectedFamily);
 
+    }
+
+    @Test
+    @Disabled
+    public void checkToObjectShouldReturnObjectWithArrays() {
+
+        Human[][] passengers = {{Human.builder()
+                .name("Manya")
+                .family("Galya")
+                .age(27)
+                .isGod(true)
+                .childrenQuantity(0)
+                .build()}};
+
+        Car expectedCar = Car.builder()
+                .passengers(passengers)
+                .isExclusive(true)
+                .producers(new String[] {"Antonio Carravatti"})
+                .productionYear(1989)
+                .build();
+
+        String json = gson.toJson(expectedCar);
+
+        Car actualCar = jsonParserImpl.toObject(Car.class, json);
     }
 
 }

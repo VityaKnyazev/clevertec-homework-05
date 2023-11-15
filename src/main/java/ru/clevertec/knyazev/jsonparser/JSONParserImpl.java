@@ -21,6 +21,7 @@ public class JSONParserImpl implements JSONParser {
         return json.substring(0, json.length() - 1);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public <T> T toObject(Class<T> objectClass, String json) {
 

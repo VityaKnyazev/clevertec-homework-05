@@ -8,7 +8,6 @@ import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.util.Collection;
 import java.util.Map;
-import java.util.logging.Level;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -55,7 +54,7 @@ public class ObjectToJSONFormatterImpl extends ObjectToJSONFormatter {
     @Override
     String formatSimple(Object baseObject, Field... baseField) {
 
-        String result = null;
+        String result;
 
         if (baseObject == null)
             return "";
@@ -82,7 +81,7 @@ public class ObjectToJSONFormatterImpl extends ObjectToJSONFormatter {
 
     @Override
     String formatArray(Object baseObject, Field... baseArrField) {
-        String result = null;
+        String result;
         Object array;
 
         if (baseObject == null)
@@ -122,8 +121,8 @@ public class ObjectToJSONFormatterImpl extends ObjectToJSONFormatter {
 
     @Override
     String formatCollection(Object baseObject, Field... baseCollectionField) {
-        String result = null;
-        Collection<?> collectionObject = null;
+        String result;
+        Collection<?> collectionObject;
 
         if (baseObject == null)
             return "";
@@ -155,8 +154,8 @@ public class ObjectToJSONFormatterImpl extends ObjectToJSONFormatter {
 
     @Override
     String formatMap(Object baseObject, Field... baseMapField) {
-        String result = null;
-        Map<?, ?> mapObject = null;
+        String result;
+        Map<?, ?> mapObject;
 
         if (baseObject == null)
             return "";

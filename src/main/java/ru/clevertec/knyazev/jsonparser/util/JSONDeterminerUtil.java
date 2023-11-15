@@ -1,16 +1,22 @@
 package ru.clevertec.knyazev.jsonparser.util;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public interface JSONDeterminerUtil {
 
-    default String getSimpleFieldValueFromJSON(String fieldName, String simpleJson) {
+    /**
+     *
+     * Get simple field value from JSON
+     * Example: id:12, should return 12
+     *
+     * @param simpleJson simple json
+     * @return key from key:value json pair
+     */
+    default String getSimpleFieldValueFromJSON(String simpleJson) {
 
-        if (simpleJson == "") {
+        if (simpleJson == null || simpleJson.isEmpty()) {
             return "";
         }
 
@@ -18,24 +24,25 @@ public interface JSONDeterminerUtil {
                 .replace(",", "");
     }
 
-    private List<String> getArrayValuesFromJSON(String fieldName, String jSON) {
+    /**
+     *
+     * Get simple array values from json
+     * Example abv:[1,2,3,4] should return list of 1,2,3,4
+     *
+     * @param jSON input array json
+     * @return simple values of array json
+     */
+    default List<String> getSimpleArrayValuesFromJSON(String jSON) {
 
-        List<String> arraySimpleFieldValues = new ArrayList<>();
-
-        String arrayJson = getCompositeJSON(fieldName, jSON);
-
-        if (arrayJson == "") {
-            return arraySimpleFieldValues;
+        if (jSON == null || jSON.isEmpty()) {
+            return Collections.emptyList();
         }
 
-        arrayJson = arrayJson.replaceFirst("\"" + fieldName + "\":", "");
+        String jsonValue = jSON.replaceFirst("\"\\w*\"\\s*:\\s*\\[", "")
+                .replaceFirst("\\],?", "");
 
-        if (hasJSONSimpleData(arrayJson)) {
-
-        }
-
-        return null;
-
+        return Arrays.stream(jsonValue.split(","))
+                .toList();
     }
 
     /**
@@ -61,7 +68,7 @@ public interface JSONDeterminerUtil {
     /**
      * Removing composite or simple field from JSON and return the rest JSON
      *
-     * @param jSON input JSON String
+     * @param jSON         input JSON String
      * @param removingJSON json String for removing
      * @return simple JSON without given removing json string
      */
@@ -74,7 +81,7 @@ public interface JSONDeterminerUtil {
             int beginIndex = endIndex + removingJSON.length();
 
             restJSON = restJSON.substring(0, endIndex)
-                    + restJSON.substring(beginIndex, restJSON.length());
+                    + restJSON.substring(beginIndex);
         }
 
 
@@ -84,11 +91,10 @@ public interface JSONDeterminerUtil {
     }
 
     /**
-     *
      * Removing composite fields from JSON and returns only simple JSON fields :
      * values
      *
-     * @param jSON input String
+     * @param jSON            input String
      * @param compositeFields Map with fieldName and composite fields JSON value
      * @return JSON without composite fields
      */
@@ -101,13 +107,28 @@ public interface JSONDeterminerUtil {
                 int beginIndex = endIndex + compositeField.length();
 
                 simpleFieldsJSON = simpleFieldsJSON.substring(0, endIndex)
-                        + simpleFieldsJSON.substring(beginIndex, simpleFieldsJSON.length());
+                        + simpleFieldsJSON.substring(beginIndex);
             }
         }
 
         simpleFieldsJSON = simpleFieldsJSON.replaceFirst(",}$", "}");
 
         return simpleFieldsJSON;
+    }
+
+    /**
+     * Check if jSON String contains only simple data like {"data": "1", "some" : 2} or ["data": "1", "some" : 2]
+     * or {"data": "1", "some" : 2}, or [2, "5", "ara"]
+     *
+     * @param jSON String
+     * @return boolean
+     */
+    default boolean hasJSONSimpleData(String jSON) {
+
+        return Pattern.compile("^[\\[\\{](\\s*?\"\\w+?\"\\s*?:\\s*?[\\w\"]+,?)+\\s*?[\\]\\}],?$")
+                .matcher(jSON).matches() ||
+                Pattern.compile("^\\[(\\\"?\\w*\\\"?,?\\s?)+\\],?$")
+                        .matcher(jSON).matches();
     }
 
     /**
@@ -209,20 +230,5 @@ public interface JSONDeterminerUtil {
         }
 
         return endIndex;
-    }
-
-    /**
-     * Check if jSON String contains only simple data like {"data": "1", "some" : 2} or ["data": "1", "some" : 2]
-     * or {"data": "1", "some" : 2}, or [2, "5", "ara"]
-     *
-     * @param jSON String
-     * @return boolean
-     */
-    private boolean hasJSONSimpleData(String jSON) {
-
-        return Pattern.compile("^[\\[\\{](\\s*?\"\\w+?\"\\s*?:\\s*?[\\w\"]+,?)+\\s*?[\\]\\}],?$")
-                .matcher(jSON).matches() ||
-                Pattern.compile("^\\[(\\\"?\\w*\\\"?,?\\s?)+\\],?$")
-                        .matcher(jSON).matches();
     }
 }

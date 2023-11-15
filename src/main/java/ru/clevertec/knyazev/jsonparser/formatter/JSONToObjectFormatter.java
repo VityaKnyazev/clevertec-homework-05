@@ -5,15 +5,14 @@ import ru.clevertec.knyazev.jsonparser.json.JSON;
 import ru.clevertec.knyazev.jsonparser.util.JSONDeterminerUtil;
 import ru.clevertec.knyazev.jsonparser.util.ObjectDeterminerUtil;
 
-import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.util.Arrays;
+import java.util.List;
 
 public class JSONToObjectFormatter implements JSONDeterminerUtil, ObjectDeterminerUtil {
 
     @SuppressWarnings("unchecked")
-    @SafeVarargs
-    public final <T, U> U formatJSONToObject(Class<T> objectClass, JSON jSon, U... parentObject) {
+    public <T, U> U formatJSONToObject(Class<T> objectClass, JSON jSon, U... parentObject) {
 
         boolean isValidParentObject = parentObject != null &&
                 parentObject.length == 1 &&
@@ -25,17 +24,7 @@ public class JSONToObjectFormatter implements JSONDeterminerUtil, ObjectDetermin
             T childObjectInstance = instantiateObject(objectClass);
             parentObjectInstance = parentObject[0];
 
-            Field[] childFields = childObjectInstance.getClass().getDeclaredFields();
-
-            Arrays.stream(childFields)
-                    .peek(childField -> childField.setAccessible(true))
-                    .peek(childField -> jSon.setFormattingField(childField.getName()))
-                    .peek(childField -> {
-                        if (isComposite(childField.getType())) {
-                            jSon.setFormattingField(childField.getName());
-                        }
-                    })
-                    .forEach(childField -> formatByCase(childObjectInstance, jSon, childField));
+            formatFields(childObjectInstance, jSon);
 
             try {
 
@@ -51,56 +40,40 @@ public class JSONToObjectFormatter implements JSONDeterminerUtil, ObjectDetermin
         } else {
             parentObjectInstance = (U) instantiateObject(objectClass);
 
-            Field[] parentFields = parentObjectInstance.getClass().getDeclaredFields();
-
-            Arrays.stream(parentFields)
-                    .peek(parentField -> parentField.setAccessible(true))
-                    .peek(parentField -> jSon.setFormattingField(parentField.getName()))
-                    .peek(parentField -> {
-                        if (isComposite(parentField.getType())) {
-                            jSon.setFormattingField(parentField.getName());
-                        }
-                    })
-                    .forEach(parentField -> formatByCase(parentObjectInstance, jSon, parentField));
+            formatFields(parentObjectInstance, jSon);
         }
 
         return parentObjectInstance;
     }
 
-    public <T> T formatSimple(T object, Field field, JSON jSon) {
+    <T> T formatSimple(T object, Field field, JSON jSon) {
 
-        String fieldValue = getSimpleFieldValueFromJSON(field.getName(), jSon.getFormattingJSON());
+        String fieldValue = getSimpleFieldValueFromJSON(jSon.getFormattingJSON());
         setSimpleObjectField(object, field, fieldValue);
 
         return object;
     }
 
-    public <T> T formatArray(T object, Field field, JSON jSon) {
+    <T> T formatArray(T object, Field field, JSON jSon) {
 
-        Object array = null;
 
-        try {
-            array = field.get(object);
-        } catch (IllegalAccessException e) {
-            throw new JSONParserException(e);
-        }
-
-        //TODO
-
-        Array.set(array, 0, "123");
-
-        try {
-            field.set(object, array);
-        } catch (IllegalAccessException e) {
-            throw new JSONParserException(e);
+        if (isComposite(field.getType().getComponentType())) {
+            //TODO
+            throw new JSONParserException("Error parsing composite array");
+        } else {
+            List<String> arrayValuesFromJSON = getSimpleArrayValuesFromJSON(jSon.getFormattingJSON());
+            setSimpleArrayField(object, field, arrayValuesFromJSON);
         }
 
         return object;
     }
 
+    @SuppressWarnings("unchecked")
     <T> T formatByCase(T object, JSON jSon, Field... field) {
 
-        boolean isValidObjectField = field != null && field.length == 1;
+        boolean isValidObjectField = field != null &&
+                field.length == 1 &&
+                field[0] != null;
 
         Class<?> checkingClass = isValidObjectField
                 ? field[0].getType()
@@ -114,7 +87,7 @@ public class JSONToObjectFormatter implements JSONDeterminerUtil, ObjectDetermin
         if (isComposite(checkingClass)) {
 
             if (isArray(checkingClass)) {
-
+                object = formatArray(object, field[0], jSon);
             } else {
                 object = formatJSONToObject(field[0].getType(), jSon, object);
             }
@@ -127,6 +100,21 @@ public class JSONToObjectFormatter implements JSONDeterminerUtil, ObjectDetermin
         jSon.setAllJSON(allJSON);
 
         return object;
+    }
+
+    private <T> void formatFields(T objectInstance, JSON jSON) {
+
+        Field[] objectFields = objectInstance.getClass().getDeclaredFields();
+
+        Arrays.stream(objectFields)
+                .peek(objectField -> objectField.setAccessible(true))
+                .peek(objectField -> jSON.setFormattingField(objectField.getName()))
+                .peek(objectField -> {
+                    if (isComposite(objectField.getType())) {
+                        jSON.setFormattingField(objectField.getName());
+                    }
+                })
+                .forEach(objectField -> formatByCase(objectInstance, jSON, objectField));
     }
 
 }

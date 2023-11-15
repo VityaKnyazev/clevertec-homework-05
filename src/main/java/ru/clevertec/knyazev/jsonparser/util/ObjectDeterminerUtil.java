@@ -3,6 +3,7 @@ package ru.clevertec.knyazev.jsonparser.util;
 import ru.clevertec.knyazev.jsonparser.converter.Converter;
 import ru.clevertec.knyazev.jsonparser.exception.JSONParserException;
 
+import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
@@ -26,7 +27,7 @@ public interface ObjectDeterminerUtil {
      * @throws JSONParserException when instantiation error
      */
     default <T> T instantiateObject(Class<T> objClass) throws JSONParserException {
-        T objInstance = null;
+        T objInstance;
 
         if (objClass == null) {
             throw new JSONParserException(OBJECT_INSTANTIATION_ERROR);
@@ -40,6 +41,34 @@ public interface ObjectDeterminerUtil {
         }
 
         return objInstance;
+    }
+
+    /**
+     *
+     * Create instance of new T array using its class
+     *
+     * @param arrayClass array class
+     * @param <T> object type
+     * @return new instance of T array
+     * @throws JSONParserException when instantiation error
+     */
+    @SuppressWarnings("unchecked")
+    default <T> T instantiateArray(Class<T> arrayClass, int arrayLength) throws JSONParserException {
+
+
+        T arrayInstance;
+
+        if (arrayClass == null || arrayLength < 1) {
+            throw new JSONParserException(OBJECT_INSTANTIATION_ERROR);
+        }
+
+        try {
+            arrayInstance = (T) Array.newInstance(arrayClass, arrayLength);
+        } catch (IllegalArgumentException e) {
+            throw new JSONParserException(OBJECT_INSTANTIATION_ERROR, e);
+        }
+
+        return arrayInstance;
     }
 
     /**
@@ -88,7 +117,7 @@ public interface ObjectDeterminerUtil {
 
     /**
      *
-     * Set simple object field using given value of object field
+     * Set simple object field using given field value
      *
      * @param object object to set simple field value
      * @param field object field
@@ -96,78 +125,105 @@ public interface ObjectDeterminerUtil {
      * @param <T> object type
      * @throws JSONParserException if field not accessible
      */
-    default <T> void setSimpleObjectField(T object, Field field, String fieldValue) {
+    default <T, U> void setSimpleObjectField(T object, Field field, String fieldValue) throws JSONParserException {
 
         field.setAccessible(true);
 
         try {
-            if (field.getType() == boolean.class || field.getType() == Boolean.class) {
-                Boolean value = Converter.convertToBoolean(fieldValue);
-                if (field.getType() == boolean.class) {
-                    value = (value == null) ? false : value;
-                }
-                field.set(object, value);
-            }
-            if (field.getType() == byte.class || field.getType() == Byte.class) {
-                Byte value = Converter.convertToByte(fieldValue);
-                if (field.getType() == byte.class) {
-                    value = (value == null) ? 0 : value;
-                }
-                field.set(object, value);
-            }
-            if (field.getType() == short.class || field.getType() == Short.class) {
-                Short value = Converter.convertToShort(fieldValue);
-                if (field.getType() == short.class) {
-                    value = (value == null) ? 0 : value;
-                }
-                field.set(object, value);
-            }
-            if (field.getType() == int.class || field.getType() == Integer.class) {
-                Integer value = Converter.convertToInteger(fieldValue);
-                if (field.getType() == int.class) {
-                    value = (value == null) ? 0 : value;
-                }
-                field.set(object, value);
-            }
-            if (field.getType() == long.class || field.getType() == Long.class) {
-                Long value = Converter.convertToLong(fieldValue);
-                if (field.getType() == long.class) {
-                    value = (value == null) ? 0L : value;
-                }
-                field.set(object, value);
-            }
-            if (field.getType() == float.class || field.getType() == Float.class) {
-                Float value = Converter.convertToFloat(fieldValue);
-                if (field.getType() == float.class) {
-                    value = (value == null) ? 0F : value;
-                }
-                field.set(object, value);
-            }
-            if (field.getType() == double.class || field.getType() == Double.class) {
-                Double value = Converter.convertToDouble(fieldValue);
-                if (field.getType() == double.class) {
-                    value = (value == null) ? 0d : value;
-                }
-                field.set(object, value);
-            }
-            if (field.getType() == char.class || field.getType() == Character.class) {
-                Character value = Converter.convertToCharacter(fieldValue);
-                if (field.getType() == char.class) {
-                    value = (value == null) ? '\u0000' : value;
-                }
-                field.set(object, value);
-            }
-            if (field.getType() == String.class) {
-                fieldValue = fieldValue.substring(1, fieldValue.length() - 1);
-
-                field.set(object, fieldValue);
-            }
+            U determinedFieldTypeValue = determineSimpleFieldTypeValue(field.getType(), fieldValue);
+            field.set(object, determinedFieldTypeValue);
 
         } catch (IllegalAccessException e) {
             throw new JSONParserException(e);
         }
     }
 
+    /**
+     *
+     * Set simple array field values to object
+     *
+     * @param object object to set simple array field value
+     * @param field array field
+     * @param fieldValues values to set on array field
+     * @param <T> object type
+     * @param <U> array type
+     * @throws JSONParserException if field not accessible
+     */
+    @SuppressWarnings("unchecked")
+    default <T, U> void setSimpleArrayField(T object, Field field, List<String> fieldValues) {
+
+        field.setAccessible(true);
+
+        U array = (U) instantiateArray(field.getType().getComponentType(), fieldValues.size());
+
+        for (int i = 0; i < fieldValues.size(); i++) {
+            Array.set(array, i, determineSimpleFieldTypeValue(field.getType().getComponentType(), fieldValues.get(i)));
+        }
+
+        try {
+            field.set(object, array);
+        } catch (IllegalAccessException e) {
+            throw new JSONParserException(e);
+        }
+
+    }
+
+    @SuppressWarnings("unchecked")
+    private <T, U> U determineSimpleFieldTypeValue(Class<T> fieldClass, String fieldValue) {
+
+        U value = null;
+
+        if (fieldClass.isAssignableFrom(boolean.class) || fieldClass.isAssignableFrom(Boolean.class)) {
+            value = (U) Converter.convertToBoolean(fieldValue);
+        }
+        if (fieldClass.isAssignableFrom(byte.class) || fieldClass.isAssignableFrom(Byte.class)) {
+            value = (U) Converter.convertToByte(fieldValue);
+            if (fieldClass.isAssignableFrom(byte.class)) {
+                value = (value == null) ? (U) Byte.valueOf("0") : value;
+            }
+        }
+        if (fieldClass.isAssignableFrom(short.class) || fieldClass.isAssignableFrom( Short.class)) {
+            value = (U) Converter.convertToShort(fieldValue);
+            if (fieldClass.isAssignableFrom(short.class)) {
+                value = (value == null) ? (U) Short.valueOf("0") : value;
+            }
+        }
+        if (fieldClass.isAssignableFrom(int.class) || fieldClass.isAssignableFrom(Integer.class)) {
+            value = (U) Converter.convertToInteger(fieldValue);
+            if (fieldClass.isAssignableFrom(int.class)) {
+                value = (value == null) ? (U) Integer.valueOf("0") : value;
+            }
+        }
+        if (fieldClass.isAssignableFrom(long.class) || fieldClass.isAssignableFrom(Long.class)) {
+            value = (U) Converter.convertToLong(fieldValue);
+            if (fieldClass.isAssignableFrom(long.class)) {
+                value = (value == null) ? (U) Long.valueOf("0L") : value;
+            }
+        }
+        if (fieldClass.isAssignableFrom(float.class) || fieldClass.isAssignableFrom(Float.class)) {
+            value = (U) Converter.convertToFloat(fieldValue);
+            if (fieldClass.isAssignableFrom(float.class)) {
+                value = (value == null) ? (U) Float.valueOf("0F") : value;
+            }
+        }
+        if (fieldClass.isAssignableFrom(double.class) || fieldClass.isAssignableFrom(Double.class)) {
+            value = (U) Converter.convertToDouble(fieldValue);
+            if (fieldClass.isAssignableFrom(double.class)) {
+                value = (value == null) ? (U) Double.valueOf("0d") : value;
+            }
+        }
+        if (fieldClass.isAssignableFrom( char.class) || fieldClass.isAssignableFrom(Character.class)) {
+            value = (U) Converter.convertToCharacter(fieldValue);
+            if (fieldClass.isAssignableFrom(char.class)) {
+                value = (value == null) ? (U) Character.valueOf('\u0000') : value;
+            }
+        }
+        if (fieldClass.isAssignableFrom(String.class)) {
+            value = (U) fieldValue.substring(1, fieldValue.length() - 1);
+        }
+
+        return value;
+    }
 
     /**
      *
